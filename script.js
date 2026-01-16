@@ -2,10 +2,17 @@ function verificarAcceso() {
     const email = document.getElementById('email').value;
     const errorMsg = document.getElementById('mensaje-error');
     
+    if (email.trim() === "") {
+        errorMsg.textContent = "El campo de correo electrónico está vacío";
+        errorMsg.style.display = 'block';
+        return;
+    }
+
     if (email.toLowerCase().endsWith('@tecmilenio.mx')) {
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('main-screen').style.display = 'block';
     } else {
+        errorMsg.textContent = "⚠️ Solo se permiten correos @tecmilenio.mx";
         errorMsg.style.display = 'block';
     }
 }
@@ -29,7 +36,7 @@ function registrarUsuario() {
     }
 
     if (pass.length < 1) {
-        errorMsg.textContent = "⚠️ Ingresa una contraseña";
+        errorMsg.textContent = "Ingresa una contraseña";
         errorMsg.style.display = 'block';
         return;
     }
