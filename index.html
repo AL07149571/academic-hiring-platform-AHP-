@@ -5,45 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Talento Tecmilenio - Contratación</title>
     <link rel="icon" type="image/png" href="Imagenes/IA-G_Logo_web.png">
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f4f9;
-            background-image: url('Imagenes/IA-G_Tecmilenio_Fondo_inicio.png');
-            background-size: cover;
-            background-position: center;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .card {
-            background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            text-align: center;
-            max-width: 500px;
-        }
-        button {
-            background-color: #005c42; /* Verde institucional aproximado */
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-top: 15px;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="card">
+    <!-- Pantalla de Login -->
+    <div class="card" id="login-screen">
+        <h1>Iniciar Sesión</h1>
+        <p>Ingresa tu correo institucional para acceder.</p>
+        <input type="email" id="email" placeholder="ejemplo@tecmilenio.mx">
+        <input type="password" id="password" placeholder="Contraseña">
+        <button onclick="verificarAcceso()">Entrar</button>
+        <p id="mensaje-error" style="color: red; display: none; margin-top: 10px; font-size: 0.9em;">⚠️ Solo se permiten correos @tecmilenio.mx</p>
+        <p style="margin-top: 15px; font-size: 0.9em;">¿No tienes cuenta? <a href="#" onclick="mostrarRegistro()">Regístrate aquí</a></p>
+    </div>
+
+    <!-- Pantalla de Registro -->
+    <div class="card" id="register-screen" style="display: none;">
+        <h1>Crear Cuenta</h1>
+        <p>Únete a la red de talento Tecmilenio.</p>
+        <input type="text" id="reg-nombre" placeholder="Nombre completo">
+        <input type="email" id="reg-email" placeholder="correo@tecmilenio.mx">
+        <input type="password" id="reg-password" placeholder="Contraseña">
+        <input type="password" id="reg-confirm-password" placeholder="Confirmar contraseña">
+        <button onclick="registrarUsuario()">Registrarse</button>
+        <p id="reg-mensaje-error" style="color: red; display: none; margin-top: 10px; font-size: 0.9em;"></p>
+        <p style="margin-top: 15px; font-size: 0.9em;">¿Ya tienes cuenta? <a href="#" onclick="mostrarLogin()">Inicia sesión</a></p>
+    </div>
+
+    <!-- Pantalla Principal (Oculta inicialmente) -->
+    <div class="card" id="main-screen" style="display: none;">
         <h1>Talento Tecmilenio</h1>
         <p>Bienvenido a la plataforma exclusiva de contratación. Encuentra a los mejores estudiantes y egresados de nuestra universidad para tu empresa.</p>
         <p style="font-size: 0.9em; color: #666;">🔒 Acceso restringido a la comunidad Tecmilenio</p>
         <button onclick="alert('Redirigiendo al portal de búsqueda...')">Buscar Candidatos</button>
+        <p style="margin-top: 15px;"><a href="#" onclick="cerrarSesion()">Cerrar Sesión</a></p>
     </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
