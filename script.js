@@ -1,67 +1,118 @@
-function verificarAcceso() {
-    const email = document.getElementById('email').value;
+// Importamos las herramientas de Firebase desde la nube
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+
+// --- CONFIGURACIÓN DE FIREBASE ---
+// REEMPLAZA ESTO CON LOS DATOS QUE TE DIO FIREBASE EN LA CONSOLA
+const firebaseConfig = {
+  apiKey: "AIzaSyDBHlekQjssp0ZmFwmvIsHPjrxNf4Voy-k",
+  authDomain: "academic-hiring-platform-ahp.firebaseapp.com",
+  projectId: "academic-hiring-platform-ahp",
+  storageBucket: "academic-hiring-platform-ahp.firebasestorage.app",
+  messagingSenderId: "428143700637",
+  appId: "1:428143700637:web:e93b450c745fa238250274",
+  measurementId: "G-C9N0D84JZH"
+};
+
+// Inicializar Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+// --- FUNCIONES DEL SITIO ---
+// Usamos "window." para que el HTML pueda encontrar estas funciones
+
+window.verificarAcceso = async function() {
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
     const errorMsg = document.getElementById('mensaje-error');
+
+    if (email === "") {
+        mostrarError(errorMsg, "⚠️ El campo de correo está vacío");
+        return;
+    } 
     
-    if (email.trim() === "") {
-        errorMsg.textContent = "El campo de correo electrónico está vacío";
-        errorMsg.style.display = 'block';
+    if (!validarDominio(email)) {
+        mostrarError(errorMsg, "⚠️ Solo se permiten correos @tecmilenio.mx");
         return;
     }
 
-    if (email.toLowerCase().endsWith('@tecmilenio.mx')) {
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+        // Login exitoso
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('main-screen').style.display = 'block';
-    } else {
-        errorMsg.textContent = "⚠️ Solo se permiten correos @tecmilenio.mx";
-        errorMsg.style.display = 'block';
+    } catch (error) {
+        console.error(error);
+        mostrarError(errorMsg, "⚠️ Correo o contraseña incorrectos");
     }
-}
+};
 
-function registrarUsuario() {
-    const email = document.getElementById('reg-email').value;
+window.registrarUsuario = async function() {
+    const nombre = document.getElementById('reg-nombre').value;
+    const email = document.getElementById('reg-email').value.trim();
     const pass = document.getElementById('reg-password').value;
     const confirmPass = document.getElementById('reg-confirm-password').value;
     const errorMsg = document.getElementById('reg-mensaje-error');
 
-    if (!email.toLowerCase().endsWith('@tecmilenio.mx')) {
-        errorMsg.textContent = "⚠️ Debes usar un correo institucional (@tecmilenio.mx)";
-        errorMsg.style.display = 'block';
+    if (!validarDominio(email)) {
+        mostrarError(errorMsg, "⚠️ Debes usar un correo institucional (@tecmilenio.mx)");
         return;
     }
 
     if (pass !== confirmPass) {
-        errorMsg.textContent = "⚠️ Las contraseñas no coinciden";
-        errorMsg.style.display = 'block';
+        mostrarError(errorMsg, "⚠️ Las contraseñas no coinciden");
         return;
     }
 
-    if (pass.length < 1) {
-        errorMsg.textContent = "Ingresa una contraseña";
-        errorMsg.style.display = 'block';
+    if (pass.length < 6) {
+        mostrarError(errorMsg, "⚠️ La contraseña debe tener al menos 6 caracteres");
         return;
     }
 
-    // Registro exitoso simulado
-    alert('¡Cuenta creada exitosamente! Bienvenido.');
-    document.getElementById('register-screen').style.display = 'none';
-    document.getElementById('main-screen').style.display = 'block';
-}
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+        // Guardar el nombre del usuario en su perfil de Firebase
+        await updateProfile(userCredential.user, { displayName: nombre });
+        
+        alert('¡Cuenta creada exitosamente en la nube! Bienvenido.');
+        document.getElementById('register-screen').style.display = 'none';
+        document.getElementById('main-screen').style.display = 'block';
+    } catch (error) {
+        console.error(error);
+        if (error.code === 'auth/email-already-in-use') {
+            mostrarError(errorMsg, "⚠️ Este correo ya está registrado");
+        } else {
+            mostrarError(errorMsg, "⚠️ Error: " + error.message);
+        }
+    }
+};
 
-function mostrarRegistro() {
+window.mostrarRegistro = function() {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('register-screen').style.display = 'block';
-}
+};
 
-function mostrarLogin() {
+window.mostrarLogin = function() {
     document.getElementById('register-screen').style.display = 'none';
     document.getElementById('login-screen').style.display = 'block';
-}
+};
 
-function cerrarSesion() {
+window.cerrarSesion = async function() {
+    await signOut(auth);
     document.getElementById('main-screen').style.display = 'none';
     document.getElementById('login-screen').style.display = 'block';
     // Limpiar campos
     document.getElementById('email').value = '';
     document.getElementById('password').value = '';
     document.getElementById('mensaje-error').style.display = 'none';
+};
+
+// Funciones auxiliares
+function validarDominio(email) {
+    return email.toLowerCase().endsWith('@tecmilenio.mx');
+}
+
+function mostrarError(elemento, mensaje) {
+    elemento.textContent = mensaje;
+    elemento.style.display = 'block';
 }
