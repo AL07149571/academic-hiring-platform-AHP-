@@ -1,9 +1,7 @@
-// Importamos las herramientas de Firebase desde la nube
+// Importa las herramientas de Firebase desde la nube
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-
 // --- CONFIGURACIÓN DE FIREBASE ---
-// REEMPLAZA ESTO CON LOS DATOS QUE TE DIO FIREBASE EN LA CONSOLA
 const firebaseConfig = {
   apiKey: "AIzaSyDBHlekQjssp0ZmFwmvIsHPjrxNf4Voy-k",
   authDomain: "academic-hiring-platform-ahp.firebaseapp.com",
@@ -13,14 +11,12 @@ const firebaseConfig = {
   appId: "1:428143700637:web:e93b450c745fa238250274",
   measurementId: "G-C9N0D84JZH"
 };
-
 // Inicializar Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
 // --- FUNCIONES DEL SITIO ---
-// Usamos "window." para que el HTML pueda encontrar estas funciones
-
+// Usa "window." para que el HTML pueda encontrar estas funciones
 window.verificarAcceso = async function() {
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
@@ -60,7 +56,7 @@ window.registrarUsuario = async function() {
     }
 
     if (pass !== confirmPass) {
-        mostrarError(errorMsg, "⚠️ Las contraseñas no coinciden");
+        mostrarError(errorMsg, "Las contraseñas no coinciden");
         return;
     }
 
@@ -80,7 +76,7 @@ window.registrarUsuario = async function() {
     } catch (error) {
         console.error(error);
         if (error.code === 'auth/email-already-in-use') {
-            mostrarError(errorMsg, "⚠️ Este correo ya está registrado");
+            mostrarError(errorMsg, "Este correo ya está registrado");
         } else {
             mostrarError(errorMsg, "⚠️ Error: " + error.message);
         }
