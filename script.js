@@ -23,12 +23,12 @@ window.verificarAcceso = async function() {
     const errorMsg = document.getElementById('mensaje-error');
 
     if (email === "") {
-        mostrarError(errorMsg, "⚠️ El campo de correo está vacío");
+        mostrarError(errorMsg, "El campo de correo está vacío");
         return;
     } 
     
     if (!validarDominio(email)) {
-        mostrarError(errorMsg, "⚠️ Solo se permiten correos @tecmilenio.mx");
+        mostrarError(errorMsg, "Solo se permiten correos @tecmilenio.mx");
         return;
     }
 
@@ -39,7 +39,7 @@ window.verificarAcceso = async function() {
         document.getElementById('main-screen').style.display = 'block';
     } catch (error) {
         console.error(error);
-        mostrarError(errorMsg, "⚠️ Correo o contraseña incorrectos");
+        mostrarError(errorMsg, "Correo o contraseña incorrectos");
     }
 };
 
