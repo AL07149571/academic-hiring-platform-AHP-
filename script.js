@@ -112,3 +112,32 @@ function mostrarError(elemento, mensaje) {
     elemento.textContent = mensaje;
     elemento.style.display = 'block';
 }
+
+// Simula un método GET para obtener el nombre del usuario desde Firebase Auth
+window.obtenerNombreGET = async function() {
+    const user = auth.currentUser;
+    if (!user) return null;
+    return user.displayName || user.email || null;
+};
+
+// Usado por el botón "Ingresar al Menu Principal"
+window.ingresarMenu = async function() {
+    const nombre = await window.obtenerNombreGET();
+    const main = document.getElementById('main-screen');
+    const greeting = nombre ? `Bienvenido ${nombre} {GET}` : 'Bienvenido {GET}';
+
+    // Reemplaza el contenido de la pantalla principal por el saludo
+    main.innerHTML = '';
+    const h1 = document.createElement('h1');
+    h1.textContent = greeting;
+    main.appendChild(h1);
+
+    const p = document.createElement('p');
+    p.textContent = 'Acceso restringido a usuarios ajenos a la comunidad de Tecmilenio';
+    main.appendChild(p);
+
+    const logoutBtn = document.createElement('button');
+    logoutBtn.textContent = 'Cerrar Sesión';
+    logoutBtn.onclick = cerrarSesion;
+    main.appendChild(logoutBtn);
+};
