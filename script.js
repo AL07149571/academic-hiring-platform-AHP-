@@ -123,21 +123,8 @@ window.obtenerNombreGET = async function() {
 // Usado por el botón "Ingresar al Menu Principal"
 window.ingresarMenu = async function() {
     const nombre = await window.obtenerNombreGET();
-    const main = document.getElementById('main-screen');
     const greeting = nombre ? `Bienvenido ${nombre} {GET}` : 'Bienvenido {GET}';
-
-    // Reemplaza el contenido de la pantalla principal por el saludo
-    main.innerHTML = '';
-    const h1 = document.createElement('h1');
-    h1.textContent = greeting;
-    main.appendChild(h1);
-
-    const p = document.createElement('p');
-    p.textContent = 'Acceso restringido a usuarios ajenos a la comunidad de Tecmilenio';
-    main.appendChild(p);
-
-    const logoutBtn = document.createElement('button');
-    logoutBtn.textContent = 'Cerrar Sesión';
-    logoutBtn.onclick = cerrarSesion;
-    main.appendChild(logoutBtn);
+    
+    // Mostrar el saludo en un cuadro modal
+    alert(greeting);
 };
