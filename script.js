@@ -77,7 +77,15 @@ window.registrarUsuario = async function() {
         await updateProfile(userCredential.user, { displayName: nombre });
         // Enviar correo de verificación y forzar verificación antes de acceso
         await sendEmailVerification(userCredential.user);
-        alert('Cuenta creada. Se ha enviado un correo de verificación. Confirma tu correo antes de iniciar sesión.');
+        // Cerrar sesión para evitar que el usuario quede autenticado inmediatamente
+        await signOut(auth);
+        const info = document.getElementById('mensaje-info');
+        if (info) {
+            info.textContent = 'Cuenta creada. Se ha enviado un correo de verificación. Confirma tu correo antes de iniciar sesión.';
+            info.style.display = 'block';
+        } else {
+            alert('Cuenta creada. Se ha enviado un correo de verificación. Confirma tu correo antes de iniciar sesión.');
+        }
         document.getElementById('register-screen').style.display = 'none';
         document.getElementById('login-screen').style.display = 'block';
     } catch (error) {
