@@ -1,6 +1,6 @@
 // Importa las herramientas de Firebase desde la nube
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 // --- CONFIGURACIÓN DE FIREBASE ---
 const firebaseConfig = {
   apiKey: "AIzaSyDBHlekQjssp0ZmFwmvIsHPjrxNf4Voy-k",
@@ -33,8 +33,14 @@ window.verificarAcceso = async function() {
     }
 
     try {
-        await signInWithEmailAndPassword(auth, email, password);
-        // Login exitoso
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        if (!user.emailVerified) {
+            await signOut(auth);
+            mostrarError(errorMsg, "Debes verificar tu correo antes de iniciar sesión. Revisa tu bandeja y confirma.");
+            return;
+        }
+        // Login exitoso y verificado
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('main-screen').style.display = 'block';
     } catch (error) {
@@ -69,10 +75,11 @@ window.registrarUsuario = async function() {
         const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
         // Guardar el nombre del usuario en su perfil de Firebase
         await updateProfile(userCredential.user, { displayName: nombre });
-        
-        alert('¡Cuenta creada exitosamente en la nube! Bienvenido.');
+        // Enviar correo de verificación y forzar verificación antes de acceso
+        await sendEmailVerification(userCredential.user);
+        alert('Cuenta creada. Se ha enviado un correo de verificación. Confirma tu correo antes de iniciar sesión.');
         document.getElementById('register-screen').style.display = 'none';
-        document.getElementById('main-screen').style.display = 'block';
+        document.getElementById('login-screen').style.display = 'block';
     } catch (error) {
         console.error(error);
         if (error.code === 'auth/email-already-in-use') {
@@ -123,12 +130,6 @@ window.obtenerNombreGET = async function() {
 // Usado por el botón "Ingresar al Menu Principal"
 window.ingresarMenu = async function() {
     const nombre = await window.obtenerNombreGET();
-<<<<<<< HEAD
-    const greeting = nombre ? `Bienvenido ${nombre} {GET}` : 'Bienvenido {GET}';
-    
-    // Mostrar el saludo en un cuadro modal
-    alert(greeting);
-=======
     const main = document.getElementById('main-screen');
     const greeting = nombre ? `Bienvenido ${nombre} {GET}` : 'Bienvenido {GET}';
 
@@ -146,5 +147,32 @@ window.ingresarMenu = async function() {
     logoutBtn.textContent = 'Cerrar Sesión';
     logoutBtn.onclick = cerrarSesion;
     main.appendChild(logoutBtn);
->>>>>>> 85de824 (Add script.js: add GET-like greeting and ingresarMenu)
+};
+
+// Reenviar correo de verificación (usa las credenciales en los campos de login)
+window.reenviarCorreoVerificacion = async function() {
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const errorMsg = document.getElementById('mensaje-error');
+
+    if (!email || !password) {
+        mostrarError(errorMsg, 'Introduce correo y contraseña para reenviar el correo de verificación');
+        return;
+    }
+
+    try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        await sendEmailVerification(userCredential.user);
+        await signOut(auth);
+        const info = document.getElementById('mensaje-info');
+        if (info) {
+            info.textContent = 'Se ha reenviado el correo de verificación. Revisa tu bandeja.';
+            info.style.display = 'block';
+        } else {
+            alert('Se ha reenviado el correo de verificación. Revisa tu bandeja.');
+        }
+    } catch (error) {
+        console.error(error);
+        mostrarError(errorMsg, 'No se pudo reenviar el correo: ' + error.message);
+    }
 };
