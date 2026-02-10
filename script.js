@@ -33,14 +33,8 @@ window.verificarAcceso = async function() {
     }
 
     try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-        if (!user.emailVerified) {
-            await signOut(auth);
-            mostrarError(errorMsg, "Debes verificar tu correo antes de iniciar sesión. Revisa tu bandeja y confirma.");
-            return;
-        }
-        // Login exitoso y verificado
+        await signInWithEmailAndPassword(auth, email, password);
+        // Login exitoso
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('main-screen').style.display = 'block';
     } catch (error) {
@@ -179,6 +173,28 @@ window.reenviarCorreoVerificacion = async function() {
         } else {
             alert('Se ha reenviado el correo de verificación. Revisa tu bandeja.');
         }
+    } catch (error) {
+        console.error(error);
+        mostrarError(errorMsg, 'No se pudo reenviar el correo: ' + error.message);
+    }
+};
+
+// Reenviar correo de verificación (usa las credenciales en los campos de login)
+window.reenviarCorreoVerificacion = async function() {
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const errorMsg = document.getElementById('mensaje-error');
+
+    if (!email || !password) {
+        mostrarError(errorMsg, 'Introduce correo y contraseña para reenviar el correo de verificación');
+        return;
+    }
+
+    try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        await sendEmailVerification(userCredential.user);
+        await signOut(auth);
+        alert('Se ha reenviado el correo de verificación. Revisa tu bandeja.');
     } catch (error) {
         console.error(error);
         mostrarError(errorMsg, 'No se pudo reenviar el correo: ' + error.message);

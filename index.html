@@ -16,6 +16,8 @@
         <input type="password" id="password" placeholder="Contraseña">
         <button onclick="verificarAcceso()">Entrar</button>
         <p id="mensaje-error" style="color: red; display: none; margin-top: 10px; font-size: 0.9em;">⚠️ Solo se permiten correos @tecmilenio.mx</p>
+        <button onclick="reenviarCorreoVerificacion()" id="resend-verif-btn" style="margin-top:8px; display: inline-block;">Reenviar correo de verificación</button>
+        <p id="mensaje-info" style="color: green; display: none; margin-top: 8px; font-size: 0.9em;"></p>
         <p style="margin-top: 15px; font-size: 0.9em;">¿No tienes cuenta? <a href="#" onclick="mostrarRegistro()">Regístrate aquí</a></p>
     </div>
 
