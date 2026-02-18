@@ -1,48 +1,24 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AHP - Academic Hiring Platform</title>
-    <link rel="icon" type="image/png" href="Imagenes/IA-G_Logo_web.png">
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AHP</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
-    <!-- Pantalla de Logeo -->
-    <div class="card" id="login-screen">
-        <h1>Inicia Sesión</h1>
-        <p>Ingresa tu correo institucional para acceder.</p>
-        <input type="email" id="email" placeholder="Correo">
-        <input type="password" id="password" placeholder="Contraseña">
-        <button onclick="verificarAcceso()">Entrar</button>
-        <p id="mensaje-error" style="color: red; display: none; margin-top: 10px; font-size: 0.9em;">⚠️ Solo se permiten correos @tecmilenio.mx</p>
-        <button onclick="reenviarCorreoVerificacion()" id="resend-verif-btn" style="margin-top:8px; display: inline-block;">Reenviar correo de verificación</button>
-        <p id="mensaje-info" style="color: green; display: none; margin-top: 8px; font-size: 0.9em;"></p>
-        <p style="margin-top: 15px; font-size: 0.9em;">¿No tienes cuenta? <a href="#" onclick="mostrarRegistro()">Regístrate aquí</a></p>
-    </div>
 
-    <!-- Pantalla de Registro -->
-    <div class="card" id="register-screen" style="display: none;">
-        <h1>Crear Cuenta</h1>
-        <p>Únete a la red de talento Tecmilenio.</p>
-        <input type="text" id="reg-nombre" placeholder="Nombre completo">
-        <input type="email" id="reg-email" placeholder="correo@tecmilenio.mx">
-        <input type="password" id="reg-password" placeholder="Contraseña">
-        <input type="password" id="reg-confirm-password" placeholder="Confirmar contraseña">
-        <button onclick="registrarUsuario()">Registrarse</button>
-        <p id="reg-mensaje-error" style="color: red; display: none; margin-top: 10px; font-size: 0.9em;"></p>
-        <p style="margin-top: 15px; font-size: 0.9em;">¿Ya tienes cuenta? <a href="#" onclick="mostrarLogin()">Inicia sesión</a></p>
-    </div>
+  <!-- Logo en esquina superior izquierda -->
+  <img src="logo.png" alt="Logo AHP" class="logo">
 
-    <!-- Pantalla Principal (Oculta hasta iniciar sesión) -->
-    <div class="card" id="main-screen" style="display: none;">
-        <h1>Bienvenido a la web de AHP</h1>
-        <p>Bienvenido a nuestra plataforma para busqueda y contratación. Encuentra a los mejores estudiantes y egresados de nuestra universidad para tu empresa.</p>
-        <p style="font-size: 0.9em; color: #666;">Acceso restringido a usuarios ajenos a la comunidad de Tecmilenio</p>
-        <button onclick="ingresarMenu()">Ingresar al Menu Principal</button>
-        <p style="margin-top: 15px;"><a href="#" onclick="cerrarSesion()">Cerrar Sesión</a></p>
-    </div>
+  <div class="container">
+    <p class="subtitle">Welcome to our platform</p>
+    <button class="primary-btn" onclick="location.href='login.html'">
+  I have an account
+</button>
 
-    <script type="module" src="script.js"></script>
+  </div>
+
 </body>
 </html>

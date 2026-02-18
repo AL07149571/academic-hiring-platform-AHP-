@@ -1,44 +1,98 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f4f4f9;
-    background-image: url('Imagenes/IA-G_Tecmilenio_Fondo_inicio.png');
-    background-size: cover;
-    background-position: center;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #e9f5e9, #f4f4f4);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  position: relative;
 }
-.card {
-    background: white;
-    padding: 2rem;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    text-align: center;
-    max-width: 500px;
+
+/*Logo fijo en esquina */
+.logo {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 200px; /*Ajusta tamaño aquí*/
+  height: auto;
 }
-button {
-    background-color: #005c42; 
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    margin-top: 15px;
-    width: 100%;
+
+/* Contenido centrado */
+.container {
+  text-align: center;
 }
-input {
-    width: 100%;
-    padding: 10px;
-    margin: 8px 0;
-    box-sizing: border-box;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+
+/* Subtítulo */
+.subtitle {
+  font-size: 18px;
+  color: #555;
+  margin-bottom: 30px;
 }
-a {
-    color: #005c42;
-    text-decoration: none;
-    font-weight: bold;
+
+/* Botón */
+.primary-btn {
+  padding: 12px 25px;
+  background: #1d3044;
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.primary-btn:hover {
+  background: #294b6a;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.auth-container {
+  width: 350px;
+  max-width: 90%;
+  margin: auto;
+  text-align: center;
+}
+
+.auth-container h2 {
+  margin-bottom: 20px;
+  color: #1d3044;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.auth-form input {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  transition: 0.3s;
+}
+
+.auth-form input:focus {
+  outline: none;
+  border-color: #1d3044;
+  box-shadow: 0 0 5px rgba(29, 48, 68, 0.3);
+}
+
+.auth-link {
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+.auth-link a {
+  color: #1d3044;
+  text-decoration: none;
+  font-weight: 600;
 }
