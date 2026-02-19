@@ -1,6 +1,6 @@
 // Importa las herramientas de Firebase desde la nube
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, sendEmailVerification, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 // --- CONFIGURACIÓN DE FIREBASE ---
 const firebaseConfig = {
   apiKey: "AIzaSyDBHlekQjssp0ZmFwmvIsHPjrxNf4Voy-k",
@@ -14,6 +14,37 @@ const firebaseConfig = {
 // Inicializar Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+
+// Evita que usuarios no verificados mantengan acceso: escucha cambios de estado
+onAuthStateChanged(auth, async (user) => {
+    const loginScreen = document.getElementById('login-screen');
+    const mainScreen = document.getElementById('main-screen');
+    const errorMsg = document.getElementById('mensaje-error');
+
+    if (user) {
+        try {
+            await user.reload();
+        } catch (e) {
+            console.error('Error al recargar usuario:', e);
+        }
+
+        if (!user.emailVerified) {
+            // Forzar cierre y mostrar mensaje si no está verificado
+            await signOut(auth);
+            if (errorMsg) mostrarError(errorMsg, "Por favor verifica tu correo electrónico antes de iniciar sesión.");
+            if (loginScreen) loginScreen.style.display = 'block';
+            if (mainScreen) mainScreen.style.display = 'none';
+        } else {
+            if (loginScreen) loginScreen.style.display = 'none';
+            if (mainScreen) mainScreen.style.display = 'block';
+            const info = document.getElementById('mensaje-info');
+            if (info) info.style.display = 'none';
+        }
+    } else {
+        if (loginScreen) loginScreen.style.display = 'block';
+        if (mainScreen) mainScreen.style.display = 'none';
+    }
+});
 
 // --- FUNCIONES DEL SITIO ---
 // Usa "window." para que el HTML pueda encontrar estas funciones
@@ -33,7 +64,15 @@ window.verificarAcceso = async function() {
     }
 
     try {
-        await signInWithEmailAndPassword(auth, email, password);
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        // Asegurarse de tener el estado más reciente del usuario
+        if (user.reload) await user.reload();
+        if (!user.emailVerified) {
+            mostrarError(errorMsg, "Por favor verifica tu correo electrónico antes de iniciar sesión.");
+            await signOut(auth);
+            return;
+        }
         // Login exitoso
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('main-screen').style.display = 'block';
@@ -152,51 +191,6 @@ window.ingresarMenu = async function() {
 };
 
 // Reenviar correo de verificación (usa las credenciales en los campos de login)
-window.reenviarCorreoVerificacion = async function() {
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
-    const errorMsg = document.getElementById('mensaje-error');
+// (Se mantiene una sola implementación de `reenviarCorreoVerificacion` más abajo)
 
-    if (!email || !password) {
-        mostrarError(errorMsg, 'Introduce correo y contraseña para reenviar el correo de verificación');
-        return;
-    }
-
-    try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        await sendEmailVerification(userCredential.user);
-        await signOut(auth);
-        const info = document.getElementById('mensaje-info');
-        if (info) {
-            info.textContent = 'Se ha reenviado el correo de verificación. Revisa tu bandeja.';
-            info.style.display = 'block';
-        } else {
-            alert('Se ha reenviado el correo de verificación. Revisa tu bandeja.');
-        }
-    } catch (error) {
-        console.error(error);
-        mostrarError(errorMsg, 'No se pudo reenviar el correo: ' + error.message);
-    }
-};
-
-// Reenviar correo de verificación (usa las credenciales en los campos de login)
-window.reenviarCorreoVerificacion = async function() {
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
-    const errorMsg = document.getElementById('mensaje-error');
-
-    if (!email || !password) {
-        mostrarError(errorMsg, 'Introduce correo y contraseña para reenviar el correo de verificación');
-        return;
-    }
-
-    try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        await sendEmailVerification(userCredential.user);
-        await signOut(auth);
-        alert('Se ha reenviado el correo de verificación. Revisa tu bandeja.');
-    } catch (error) {
-        console.error(error);
-        mostrarError(errorMsg, 'No se pudo reenviar el correo: ' + error.message);
-    }
-};
+// Función reenviarCorreoVerificacion eliminada: flujo manejado por listener onAuthStateChanged
