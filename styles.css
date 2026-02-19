@@ -86,6 +86,26 @@ body {
   box-shadow: 0 0 5px rgba(29, 48, 68, 0.3);
 }
 
+/* --- NUEVO: Estilos para el ojo de la contraseña --- */
+.password-wrapper {
+  position: relative; /* Para que el ícono se posicione respecto a esto */
+  width: 100%;
+}
+
+.password-wrapper input {
+  width: 100%; /* Asegura que el input llene el espacio */
+}
+
+.toggle-icon {
+  position: absolute;
+  right: 10px; /* Lo pegamos a la derecha */
+  top: 50%;
+  transform: translateY(-50%); /* Truco para centrarlo verticalmente exacto */
+  cursor: pointer;
+  color: #666;
+  display: flex;
+}
+
 .auth-link {
   margin-top: 15px;
   font-size: 14px;
