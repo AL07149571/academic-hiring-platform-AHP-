@@ -5,114 +5,148 @@
 }
 
 body {
+  font-family: 'Niramit', sans-serif;
+  background: #e5e5e5;
+}
+
+/* ---------- WELCOME ---------- */
+
+.welcome-container {
   height: 100vh;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #e9f5e9, #f4f4f4);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  position: relative;
+  gap: 20px;
 }
 
-/*Logo fijo en esquina */
 .logo {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  width: 200px; /*Ajusta tamaño aquí*/
-  height: auto;
-}
-
-/* Contenido centrado */
-.container {
-  text-align: center;
-}
-
-/* Subtítulo */
-.subtitle {
-  font-size: 18px;
-  color: #555;
-  margin-bottom: 30px;
-}
-
-/* Botón */
-.primary-btn {
-  padding: 12px 25px;
-  background: #1d3044;
-  color: white;
-  border: none;
-  border-radius: 14px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.primary-btn:hover {
-  background: #294b6a;
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-}
-
-.auth-container {
-  width: 350px;
-  max-width: 90%;
-  margin: auto;
-  text-align: center;
-}
-
-.auth-container h2 {
+  width: 140px;
   margin-bottom: 20px;
-  color: #1d3044;
 }
 
-.auth-form {
+.primary-btn,
+.secondary-btn {
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.primary-btn {
+  background: #1e324b;
+  color: white;
+}
+
+.secondary-btn {
+  background: #ccc;
+}
+
+/* ---------- LOGIN / CREATE ---------- */
+
+.login-container {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+}
+
+.left-panel {
+  width: 50%;
+  background: #eef2e6;
+  padding: 60px;
+}
+
+.right-panel {
+  width: 50%;
+  background: linear-gradient(135deg, #a4e1d5, #62c5a8);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+}
+
+.subtitle {
+  font-size: 14px;
+  margin-bottom: 20px;
+  color: #666;
+}
+
+.login-form {
   display: flex;
   flex-direction: column;
   gap: 15px;
 }
 
-.auth-form input {
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 14px;
-  transition: 0.3s;
-}
-
-.auth-form input:focus {
-  outline: none;
-  border-color: #1d3044;
-  box-shadow: 0 0 5px rgba(29, 48, 68, 0.3);
-}
-
-/* --- NUEVO: Estilos para el ojo de la contraseña --- */
-.password-wrapper {
-  position: relative; /* Para que el ícono se posicione respecto a esto */
-  width: 100%;
-}
-
-.password-wrapper input {
-  width: 100%; /* Asegura que el input llene el espacio */
-}
-
-.toggle-icon {
-  position: absolute;
-  right: 10px; /* Lo pegamos a la derecha */
-  top: 50%;
-  transform: translateY(-50%); /* Truco para centrarlo verticalmente exacto */
-  cursor: pointer;
-  color: #666;
+.input-group {
   display: flex;
+  align-items: center;
+  background: #e9e9e9;
+  padding: 8px;
+  border-radius: 6px;
 }
 
-.auth-link {
-  margin-top: 15px;
-  font-size: 14px;
+.input-group input {
+  border: none;
+  background: transparent;
+  width: 100%;
+  outline: none;
 }
 
-.auth-link a {
-  color: #1d3044;
-  text-decoration: none;
+.icon {
+  margin-right: 8px;
+}
+
+.submit-btn {
+  background: #1e324b;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.small-text {
+  font-size: 12px;
+  margin-top: 10px;
+}
+
+.create-account {
+  cursor: pointer;
   font-weight: 600;
+}
+
+.back-link {
+  font-size: 12px;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+}
+
+.small {
+  width: 90px;
+}
+
+/* ---------- MAPS CARD ---------- */
+
+.maps-card {
+  background: white;
+  padding: 15px 40px;
+  border-radius: 25px;
+  font-weight: 700;
+  font-size: 22px;
+  color: #0f7a6c;
+}
+
+.tag {
+  background: #7fd8b6;
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-weight: 600;
+  color: #0f4d44;
 }

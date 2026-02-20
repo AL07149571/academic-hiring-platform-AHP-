@@ -2,49 +2,56 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Login - AHP</title>
+  <title>AHP - Sign In</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-  <!-- Logo -->
-  <img src="logo.png" alt="Logo AHP" class="logo">
+  <div class="login-container">
 
-  <div class="auth-container">
+    <div class="left-panel">
 
-    <h2>Login</h2>
+      <img src="logo.png" class="logo">
 
-    <form class="auth-form">
+      <h2>Sign in</h2>
+      <p class="subtitle">
+        Sign in or create an account for Human Resources
+      </p>
 
-      <input type="email" placeholder="Email" required>
+      <form class="login-form">
 
-      <!-- Envolvemos el input y el ícono en un contenedor relativo -->
-      <div class="password-wrapper">
-        <input type="password" id="password" placeholder="Password" required>
-        
-        <!-- Este es el ícono del ojo (SVG) -->
-        <span class="toggle-icon" onclick="togglePassword()">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>
-          </svg>
-        </span>
-      </div>
+        <div class="input-group">
+          <span class="icon">👤</span>
+          <input type="email" placeholder="e-mail">
+        </div>
 
-      <button type="submit" class="primary-btn">
-        Sign In
-      </button>
+        <div class="input-group">
+          <span class="icon">🔒</span>
+          <input type="password" placeholder="password">
+        </div>
 
-    </form>
+        <button class="submit-btn">Submit</button>
 
-    <p class="auth-link">
-      Don’t have an account?
-      <a href="register.html">Register</a>
-    </p>
+      </form>
+
+      <p class="small-text">
+        Don't have an account?
+      </p>
+
+      <p class="create-account" onclick="location.href='create-account.html'">
+        Create account
+      </p>
+
+    </div>
+
+    <div class="right-panel">
+      <div class="maps-card">MAPS</div>
+      <div class="tag">El nuevo</div>
+      <div class="tag">modelo educativo</div>
+      <div class="tag arrow">para ti →</div>
+    </div>
 
   </div>
-
-  <!-- Conexión de (JS) con (HTML) -->
-  <script type="module" src="script.js"></script>
 
 </body>
 </html>
