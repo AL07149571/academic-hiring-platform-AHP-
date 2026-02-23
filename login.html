@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script src="https://unpkg.com/lucide@latest"></script>
   <meta charset="UTF-8">
   <title>AHP - Sign In</title>
   <link rel="stylesheet" href="styles.css">
@@ -14,23 +15,25 @@
       <img src="logo.png" class="logo">
 
       <h2>Sign in</h2>
+      <div id="verification-message" class="success-message">
+  Verification code sent to your email.
+</div>
       <p class="subtitle">
         Sign in or create an account for Human Resources
       </p>
 
       <form class="login-form">
-
-        <div class="input-group">
-          <span class="icon">👤</span>
-          <input type="email" placeholder="e-mail">
-        </div>
-
-        <div class="input-group">
-          <span class="icon">🔒</span>
-          <input type="password" placeholder="password">
-        </div>
-
-        <button class="submit-btn">Submit</button>
+<div class="input-group">
+  <i data-lucide="mail" class="input-icon"></i>
+  <input type="email" placeholder="e-mail">
+</div>
+<div class="input-group">
+  <i data-lucide="lock" class="input-icon"></i>
+  <input type="password" placeholder="password">
+</div>
+        <button type="button" class="submit-btn" onclick="login()">
+  Sign in
+</button>
 
       </form>
 
@@ -52,6 +55,40 @@
     </div>
 
   </div>
+<script> lucide.createIcons()</script>
+<script>
+if (localStorage.getItem("verificationMessage") === "true") {
+  document.getElementById("verification-message").style.display = "block";
+  localStorage.removeItem("verificationMessage");
+}
+</script>
+<script>
+function login() {
 
+  const email = document.querySelector('input[type="email"]').value;
+  const password = document.querySelector('input[type="password"]').value;
+
+  if (!email || !password) {
+    alert("Please enter email and password");
+    return;
+  }
+
+  const verified = localStorage.getItem("emailVerified");
+
+  if (verified === "true") {
+
+    // Activar animación
+    document.body.classList.add("fade-out");
+
+    // Esperar animación y redirigir
+    setTimeout(() => {
+      window.location.href = "dashboard.html";
+    }, 600);
+
+  } else {
+    alert("You must verify your email first.");
+  }
+}
+</script>
 </body>
 </html>
