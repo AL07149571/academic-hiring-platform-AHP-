@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AHP Dashboard</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="header">
+
+    <div class="logo">
+        <img src="logo.png" alt="AHP Logo">
+    </div>
+
+    <div class="profile">
+        <div class="profile-icon" onclick="toggleMenu()">👤</div>
+
+        <div class="side-panel" id="menu">
+            <button onclick="openPendientes()">Pendientes</button>
+            <button onclick="logout()">Sign out</button>
+        </div>
+    </div>
+
+</header>
+
+<main class="main">
+
+    <div class="filter-box">
+        <select class="dropdown" onchange="loadProspects(this.value)">
+            <option selected disabled>Especialidades</option>
+            <option value="ingenieria">Ingeniería</option>
+            <option value="psicologia">Psicología</option>
+            <option value="matematicas">Matemáticas</option>
+            <option value="rh">Recursos Humanos</option>
+        </select>
+
+        <button class="add-btn">+</button>
+    </div>
+
+    <div class="prospects-container" id="prospects"></div>
+
+</main>
+
+<!-- ================= MODAL CV ================= -->
+
+<div class="modal" id="cvModal">
+    <div class="modal-content">
+
+        <span class="close-btn" onclick="closeModal()">✖</span>
+
+        <div class="cv-layout">
+            <div class="cv-photo"></div>
+
+            <div class="cv-info">
+                <h2 id="cvName">Nombre</h2>
+
+                <div class="row">
+                    <span id="cvSexo">Sexo</span>
+                    <span id="cvEdad">Edad</span>
+                </div>
+
+                <p id="cvCorreo">correo@email.com</p>
+
+                <button class="interview-btn" onclick="agendarEntrevista()">
+                    📅 Agendar entrevista
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ================= MODAL PENDIENTES ================= -->
+
+<div class="modal" id="pendientesModal">
+    <div class="modal-content">
+
+        <span class="close-btn" onclick="closePendientes()">✖</span>
+
+        <h2 style="color:white;">Pendientes</h2>
+
+        <div id="pendientesList"></div>
+
+    </div>
+</div>
+
+<script>
+
+/* ================= MENU ================= */
+
+function toggleMenu(){
+    document.getElementById("menu").classList.toggle("show");
+}
+
+function logout(){
+    window.location.href = "login.html";
+}
+
+/* ================= DATA ================= */
+
+const data = {
+    ingenieria: [
+        {nombre:"Carlos Ramírez"},
+        {nombre:"Ana López"}
+    ],
+    psicologia: [
+        {nombre:"Mariana Cruz"},
+        {nombre:"Valeria Soto"}
+    ],
+    matematicas: [
+        {nombre:"José Pérez"}
+    ],
+    rh: [
+        {nombre:"Andrea Morales"}
+    ]
+};
+
+let pendientes = [];
+let candidatoActual = null;
+
+/* ================= CARGAR PROSPECTOS ================= */
+
+function loadProspects(area){
+    const container = document.getElementById("prospects");
+    container.innerHTML = "";
+
+    if(!data[area]) return;
+
+    data[area].forEach(persona => {
+        const card = document.createElement("div");
+        card.classList.add("card");
+
+        card.innerHTML = `
+            <div class="avatar"></div>
+            <h3>${persona.nombre}</h3>
+            <button class="view-btn" onclick="openModal('${persona.nombre}')">
+                Ver CV
+            </button>
+        `;
+
+        container.appendChild(card);
+    });
+}
+
+/* ================= MODAL CV (info del prospecto en el pop up) ================= */
+
+function openModal(nombre){
+    candidatoActual = nombre;
+
+    document.getElementById("cvName").innerText = nombre;
+    document.getElementById("cvSexo").innerText = "Masculino";
+    document.getElementById("cvEdad").innerText = "22 años";
+    document.getElementById("cvCorreo").innerText =
+        nombre.toLowerCase().replace(" ", "") + "@gmail.com";
+
+    document.getElementById("cvModal").classList.add("show-modal");
+}
+
+function closeModal(){
+    document.getElementById("cvModal").classList.remove("show-modal");
+}
+
+/* ================= AGENDAR ================= */
+
+function agendarEntrevista(){
+
+    if(!pendientes.includes(candidatoActual)){
+        pendientes.push(candidatoActual);
+    }
+
+    closeModal();
+}
+
+/* ================= PENDIENTES ================= */
+
+function openPendientes(){
+    const lista = document.getElementById("pendientesList");
+    lista.innerHTML = "";
+
+    pendientes.forEach((nombre, index) => {
+        const item = document.createElement("div");
+        item.style.background = "#d6d6d6";
+        item.style.margin = "10px 0";
+        item.style.padding = "10px";
+        item.style.borderRadius = "10px";
+
+        item.innerHTML = `
+            <strong>${nombre}</strong>
+            <div style="margin-top:5px;">
+                <button onclick="aceptar(${index})">Aceptar</button>
+                <button onclick="eliminar(${index})">Eliminar</button>
+            </div>
+        `;
+
+        lista.appendChild(item);
+    });
+
+    document.getElementById("pendientesModal").classList.add("show-modal");
+}
+
+function closePendientes(){
+    document.getElementById("pendientesModal").classList.remove("show-modal");
+}
+
+function aceptar(index){
+    alert("Entrevista confirmada con " + pendientes[index]);
+    pendientes.splice(index,1);
+    openPendientes();
+}
+
+function eliminar(index){
+    pendientes.splice(index,1);
+    openPendientes();
+}
+
+/* ================= CERRAR CLICK AFUERA ================= */
+
+window.onclick = function(e){
+    const cv = document.getElementById("cvModal");
+    const pendientesM = document.getElementById("pendientesModal");
+
+    if(e.target === cv){
+        closeModal();
+    }
+    if(e.target === pendientesM){
+        closePendientes();
+    }
+};
+
+</script>
+
+</body>
+</html>
