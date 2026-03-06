@@ -14,12 +14,53 @@ body {
 /* ---------- WELCOME ---------- */
 
 .welcome-container {
+  position: relative;
   height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 20px;
+  gap: 30px; /* increase gap to push content down */
+  padding-top: 80px; /* add some top padding to give room for drop zone */
+}
+
+/* small logo variant positioned top-left */
+.small-logo {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 80px;
+}
+
+/* drop/upload area */
+.drop-zone {
+  position: absolute;
+  top: 200px; /* lower the drop zone a bit */
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 60px;
+  border: 2px solid #333;
+  border-radius: 8px;
+  text-align: center;
+  width: 90%;
+  max-width: 500px;
+  min-height: 200px;
+  background: #fafafa;
+  transition: background 0.2s, border-color 0.2s;
+  z-index: 5;
+}
+.drop-zone.dragover {
+  background: #e0f7ff;
+  border-color: #0066cc;
+}
+.drop-zone p {
+  margin-bottom: 10px;
+  color: #555;
+  font-size: 18px;
+}
+.drop-zone button {
+  padding: 6px 12px;
+  cursor: pointer;
 }
 
 .logo {
@@ -408,3 +449,9 @@ body{
     color:white;
     cursor:pointer;
 }
+
+/* additional styles for new elements */
+.status-btn { margin:5px; padding:8px 12px; border:none; border-radius:6px; cursor:pointer; }
+.status-btn:first-child { background:#4caf50; color:white; }
+.status-btn:last-child { background:#f44336; color:white; }
+.pending-item { background:#d6d6d6; margin:8px 0; padding:8px; border-radius:8px; }

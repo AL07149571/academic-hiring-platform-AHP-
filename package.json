@@ -1,0 +1,31 @@
+{
+  "name": "academic-hiring-platform-ahp-",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dashboard.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AL07149571/academic-hiring-platform-AHP-.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/AL07149571/academic-hiring-platform-AHP-/issues"
+  },
+  "homepage": "https://github.com/AL07149571/academic-hiring-platform-AHP-#readme",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "express-mysql-session": "^3.0.3",
+    "express-session": "^1.19.0",
+    "multer": "^2.1.0",
+    "mysql2": "^3.18.2"
+  }
+}

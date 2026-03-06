@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AHP - Welcome</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://tecmilenio.mx/sites/default/files/2020-09/Campus_NuevoLaredo_1.jpg" rel="stylesheet">
+</head>
+<body>
+
+  <button id="debugConnectionBtn" class="secondary-btn" style="position:fixed;top:12px;right:12px;z-index:999;">
+    PROBAR CONEXION
+  </button>
+
+  <div class="welcome-container">
+
+    <!-- drag & drop upload area -->
+    <div id="drop-zone" class="drop-zone">
+      <p>Drag &amp; drop a PDF here to upload</p>
+      <input type="file" id="fileInput" accept="application/pdf" hidden>
+      <button id="browseBtn">Or click to browse</button>
+    </div>
+
+    <img src="logo.png" alt="AHP Logo" class="logo small-logo">
+
+    <h1>Welcome to AHP</h1>
+
+    <button class="primary-btn" onclick="location.href='login.html'">
+      I have an account
+    </button>
+
+    <button class="secondary-btn" onclick="location.href='create-account.html'">
+      Create account
+    </button>
+
+  </div>
+
+  <div id="vacantesModal" class="vacantes-modal" aria-hidden="true">
+    <div class="vacantes-modal-card">
+      <button id="closeVacantesModal" class="vacantes-close-btn" type="button">x</button>
+      <h2>Vacantes disponibles para tu perfil</h2>
+      <p id="vacantesSubtitle" class="vacantes-subtitle"></p>
+      <div id="vacantesList" class="vacantes-list"></div>
+    </div>
+  </div>
+
+
+<script>
+// drop zone behaviour
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('fileInput');
+const browseBtn = document.getElementById('browseBtn');
+const debugConnectionBtn = document.getElementById('debugConnectionBtn');
+const vacantesModal = document.getElementById('vacantesModal');
+const closeVacantesModalBtn = document.getElementById('closeVacantesModal');
+const vacantesListEl = document.getElementById('vacantesList');
+const vacantesSubtitleEl = document.getElementById('vacantesSubtitle');
+
+['dragenter','dragover','dragleave','drop'].forEach(eventName => {
+  dropZone.addEventListener(eventName, preventDefaults, false);
+});
+
+function preventDefaults(e) {
+  e.preventDefault();
+  e.stopPropagation();
+}
+
+// visual feedback when dragging over
+['dragenter','dragover'].forEach(eventName => {
+  dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
+});
+['dragleave','drop'].forEach(eventName => {
+  dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
+});
+
+dropZone.addEventListener('drop', handleDrop, false);
+browseBtn.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+closeVacantesModalBtn.addEventListener('click', closeVacantesModal);
+vacantesModal.addEventListener('click', (e) => {
+  if (e.target === vacantesModal) closeVacantesModal();
+});
+debugConnectionBtn.addEventListener('click', async () => {
+  const mysqlConnected = await checkMySqlConnection();
+  if (mysqlConnected) {
+    alert('Conexión a MySQL: OK');
+  } else {
+    alert('Conexión a MySQL: FALLÓ');
+  }
+});
+
+function handleDrop(e) {
+  const dt = e.dataTransfer;
+  const files = dt.files;
+  handleFiles(files);
+}
+
+async function checkMySqlConnection() {
+  try {
+    const res = await fetch('/api/health/mysql');
+    if (!res.ok) return false;
+    const data = await res.json();
+    return data.mysqlConnected === true;
+  } catch (err) {
+    console.error('MySQL health check failed:', err);
+    return false;
+  }
+}
+
+async function handleFiles(files) {
+  if (files.length === 0) return;
+  const file = files[0];
+  if (file.type !== 'application/pdf') {
+    alert('Only PDF files are allowed');
+    return;
+  }
+
+  const mysqlConnected = await checkMySqlConnection();
+  if (!mysqlConnected) {
+    alert('No se puede subir el archivo porque no hay conexión real con MySQL.');
+    return;
+  }
+
+  uploadFile(file);
+}
+
+function openVacantesModal() {
+  vacantesModal.classList.add('show');
+  vacantesModal.setAttribute('aria-hidden', 'false');
+}
+
+function closeVacantesModal() {
+  vacantesModal.classList.remove('show');
+  vacantesModal.setAttribute('aria-hidden', 'true');
+}
+
+async function fetchVacantesRecomendadas(candidatoId, areaEspecialidad) {
+  const params = new URLSearchParams({
+    candidato_id: String(candidatoId || ''),
+    area_especialidad: areaEspecialidad || ''
+  });
+
+  const response = await fetch('/api/public/vacantes/recomendadas?' + params.toString());
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'No se pudieron obtener vacantes recomendadas');
+  }
+  return data;
+}
+
+async function postularCandidato(candidatoId, vacanteId) {
+  const response = await fetch('/api/public/postulaciones', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ candidato_id: candidatoId, vacante_id: vacanteId })
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'No se pudo crear la postulación');
+  }
+  return data;
+}
+
+function renderVacantes(vacantes, candidatoId, areaEspecialidad) {
+  vacantesSubtitleEl.textContent = areaEspecialidad
+    ? 'Area detectada: ' + areaEspecialidad
+    : 'No se detecto area de especialidad';
+  vacantesListEl.innerHTML = '';
+
+  if (!vacantes.length) {
+    const empty = document.createElement('div');
+    empty.className = 'vacante-empty';
+    empty.textContent = 'No hay vacantes abiertas para esta area por el momento.';
+    vacantesListEl.appendChild(empty);
+    return;
+  }
+
+  vacantes.forEach((vacante) => {
+    const card = document.createElement('article');
+    card.className = 'vacante-card';
+
+    const title = document.createElement('h3');
+    title.textContent = vacante.titulo || 'Vacante sin titulo';
+
+    const meta = document.createElement('p');
+    meta.className = 'vacante-meta';
+    meta.textContent = 'Area: ' + (vacante.area || 'N/D');
+
+    const action = document.createElement('button');
+    action.className = 'vacante-apply-btn';
+
+    const status = document.createElement('p');
+    status.className = 'vacante-status';
+
+    if (vacante.yaPostulado) {
+      action.textContent = 'Ya postulado';
+      action.disabled = true;
+      action.classList.add('is-disabled');
+      status.textContent = 'Ya existe una postulación para esta vacante.';
+    } else {
+      action.textContent = 'Postularme';
+      action.addEventListener('click', async () => {
+        action.disabled = true;
+        action.textContent = 'Postulando...';
+        status.textContent = '';
+        try {
+          const result = await postularCandidato(candidatoId, vacante.id);
+          if (result.alreadyApplied) {
+            action.textContent = 'Ya postulado';
+            action.classList.add('is-disabled');
+            status.textContent = 'Ya existia una postulación para esta vacante.';
+          } else {
+            action.textContent = 'Postulado';
+            action.classList.add('is-disabled');
+            status.textContent = 'Postulación registrada correctamente.';
+          }
+        } catch (err) {
+          action.disabled = false;
+          action.textContent = 'Postularme';
+          status.textContent = err.message || 'Error al postular';
+        }
+      });
+    }
+
+    card.appendChild(title);
+    card.appendChild(meta);
+    card.appendChild(action);
+    card.appendChild(status);
+    vacantesListEl.appendChild(card);
+  });
+}
+
+function uploadFile(file) {
+  const formData = new FormData();
+  formData.append('pdf', file);
+  fetch('/upload', {
+    method: 'POST',
+    body: formData
+  }).then(async (res) => {
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Upload failed');
+      }
+      return data;
+    })
+    .then(async data => {
+      if (!data.ok) {
+        throw new Error(data.error || 'No se pudo procesar el CV');
+      }
+
+      const extracted = data.extracted || {};
+      const candidatoId = data.candidatoId;
+      if (!candidatoId) {
+        throw new Error('No se pudo identificar al candidato para postulación');
+      }
+
+      const recomendaciones = await fetchVacantesRecomendadas(candidatoId, extracted.area_especialidad || '');
+      renderVacantes(recomendaciones.vacantes || [], candidatoId, recomendaciones.area || extracted.area_especialidad || '');
+      openVacantesModal();
+    }).catch(err => {
+      console.error(err);
+      alert(err.message || 'Upload failed');
+    });
+}
+</script>
+</body>
+</html>

@@ -15,21 +15,14 @@
       <img src="logo.png" class="logo">
 
       <h2>Sign in</h2>
-      <div id="verification-message" class="success-message">
-  Verification code sent to your email.
-</div>
-      <p class="subtitle">
-        Sign in or create an account for Human Resources
-      </p>
 
-      <form class="login-form">
 <div class="input-group">
   <i data-lucide="mail" class="input-icon"></i>
-  <input type="email" placeholder="e-mail">
+  <input id="email" type="email" placeholder="e-mail">
 </div>
 <div class="input-group">
   <i data-lucide="lock" class="input-icon"></i>
-  <input type="password" placeholder="password">
+  <input id="password" type="password" placeholder="password">
 </div>
         <button type="button" class="submit-btn" onclick="login()">
   Sign in
@@ -57,36 +50,28 @@
   </div>
 <script> lucide.createIcons()</script>
 <script>
-if (localStorage.getItem("verificationMessage") === "true") {
-  document.getElementById("verification-message").style.display = "block";
-  localStorage.removeItem("verificationMessage");
-}
-</script>
-<script>
-function login() {
-
-  const email = document.querySelector('input[type="email"]').value;
-  const password = document.querySelector('input[type="password"]').value;
-
+async function login() {
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
   if (!email || !password) {
-    alert("Please enter email and password");
+    alert('Please enter email and password');
     return;
   }
-
-  const verified = localStorage.getItem("emailVerified");
-
-  if (verified === "true") {
-
-    // Activar animación
-    document.body.classList.add("fade-out");
-
-    // Esperar animación y redirigir
-    setTimeout(() => {
-      window.location.href = "dashboard.html";
-    }, 600);
-
-  } else {
-    alert("You must verify your email first.");
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ correo: email, password })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      window.location.href = 'dashboard.html';
+    } else {
+      alert(data.error || 'Login failed');
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Network error');
   }
 }
 </script>

@@ -1,0 +1,331 @@
+require('dotenv').config();
+const express = require('express');
+const session = require('express-session');
+const MySQLStore = require('express-mysql-session')(session);
+const path = require('path');
+const multer = require('multer');
+
+// generate a session secret at runtime if none provided in .env
+if (!process.env.SESSION_SECRET || process.env.SESSION_SECRET.startsWith('replace')) {
+  const { randomBytes } = require('crypto');
+  const secret = randomBytes(48).toString('hex');
+  console.warn('No valid SESSION_SECRET found, generated one:', secret);
+  process.env.SESSION_SECRET = secret;
+}
+
+const db = require('./db');
+const authRoutes = require('./routes/auth');
+const vacantesRoutes = require('./routes/vacantes');
+const postulacionesRoutes = require('./routes/postulaciones');
+const candidatosRoutes = require('./routes/candidatos');
+
+const app = express();
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// simple request logger for debugging
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
+
+app.use((req, res, next) => {
+  if (req.body && Object.keys(req.body).length) {
+    console.log('  body:', req.body);
+  }
+  next();
+});
+
+// session configuration
+const sessionStore = new MySQLStore({}, db.pool);
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || 'keyboard cat',
+    resave: false,
+    saveUninitialized: false,
+    store: sessionStore,
+    cookie: { maxAge: 1000 * 60 * 60 * 2 }
+  })
+);
+
+// static files
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Upload in memory only; nothing is written to disk.
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024
+  },
+  fileFilter: function (req, file, cb) {
+    const isPdfMime = file.mimetype === 'application/pdf';
+    const isPdfName = (file.originalname || '').toLowerCase().endsWith('.pdf');
+    if (isPdfMime || isPdfName) {
+      return cb(null, true);
+    }
+    cb(new Error('Only PDF files are allowed'));
+  }
+});
+
+const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL;
+
+async function forwardPdfToN8n(file) {
+  if (!N8N_WEBHOOK_URL) {
+    throw new Error('N8N_WEBHOOK_URL is not configured in .env');
+  }
+
+  const formData = new FormData();
+  const filename = file.originalname || 'document.pdf';
+  const blob = new Blob([file.buffer], { type: file.mimetype || 'application/pdf' });
+  formData.append('pdf', blob, filename);
+
+  let n8nResponse;
+  try {
+    n8nResponse = await fetch(N8N_WEBHOOK_URL, {
+      method: 'POST',
+      body: formData
+    });
+  } catch (err) {
+    const detail = err?.cause?.code || err?.cause?.message || err?.message || 'unknown network error';
+    throw new Error(`Could not reach n8n webhook at ${N8N_WEBHOOK_URL} (${detail})`);
+  }
+
+  let payload;
+  try {
+    payload = await n8nResponse.json();
+  } catch (err) {
+    throw new Error(`Invalid JSON response from n8n (status ${n8nResponse.status})`);
+  }
+
+  if (!n8nResponse.ok || payload.ok === false) {
+    const message = payload.message || `n8n returned status ${n8nResponse.status}`;
+    throw new Error(message);
+  }
+
+  return payload;
+}
+
+async function upsertCandidateFromExtraction(extracted) {
+  const correo = (extracted?.correo || '').trim();
+  const nombre = (extracted?.nombre || '').trim();
+
+  if (!correo || !nombre) {
+    return null;
+  }
+
+  const telefono = extracted.telefono ? String(extracted.telefono).trim() : null;
+  const area = extracted.area_especialidad ? String(extracted.area_especialidad).trim() : null;
+  const exp = Number.isInteger(extracted.experiencia_anos)
+    ? extracted.experiencia_anos
+    : (extracted.experiencia_anos === null || extracted.experiencia_anos === '' ? null : Number(extracted.experiencia_anos));
+  const experiencia = Number.isFinite(exp) ? Math.max(0, Math.trunc(exp)) : null;
+
+  const [existing] = await db.pool.query('SELECT id FROM candidato WHERE correo = ?', [correo]);
+
+  if (existing.length) {
+    const candidatoId = existing[0].id;
+    await db.pool.query(
+      `UPDATE candidato
+       SET nombre = ?, telefono = ?, area_especialidad = ?, experiencia_anos = ?
+       WHERE id = ?`,
+      [nombre, telefono, area, experiencia, candidatoId]
+    );
+    return candidatoId;
+  }
+
+  const [insertResult] = await db.pool.query(
+    `INSERT INTO candidato (nombre, correo, telefono, area_especialidad, experiencia_anos)
+     VALUES (?, ?, ?, ?, ?)`,
+    [nombre, correo, telefono, area, experiencia]
+  );
+
+  return insertResult.insertId;
+}
+
+app.post('/upload', upload.single('pdf'), async (req, res) => {
+  if (!req.file || !req.file.buffer) {
+    return res.status(400).json({ error: 'No file received' });
+  }
+
+  try {
+    await db.pool.query('SELECT 1 AS ok');
+  } catch (err) {
+    console.error('MySQL check failed on /upload:', err.message);
+    return res.status(503).json({
+      error: 'MySQL is not reachable',
+      mysqlConnected: false
+    });
+  }
+
+  try {
+    const n8nPayload = await forwardPdfToN8n(req.file);
+    const extracted = n8nPayload.extracted || {};
+    console.log('[UPLOAD] JSON recibido desde n8n:', JSON.stringify(extracted));
+    const candidatoId = await upsertCandidateFromExtraction(extracted);
+    const storedInMySql = Boolean(candidatoId);
+
+    console.log('[UPLOAD] Resultado MySQL:', storedInMySql ? `OK (candidato_id=${candidatoId})` : 'Sin insercion por datos incompletos');
+
+    res.json({
+      ok: true,
+      mysqlConnected: true,
+      receivedFromN8n: true,
+      storedInMySql,
+      extracted,
+      candidatoId
+    });
+  } catch (err) {
+    console.error('n8n processing failed on /upload:', err.message);
+    res.status(502).json({
+      ok: false,
+      mysqlConnected: true,
+      error: err.message || 'n8n processing failed'
+    });
+  }
+});
+
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError || err.message === 'Only PDF files are allowed') {
+    return res.status(400).json({ error: err.message });
+  }
+  return next(err);
+});
+
+app.get('/api/health/mysql', async (req, res) => {
+  try {
+    await db.pool.query('SELECT 1 AS ok');
+    res.json({ mysqlConnected: true });
+  } catch (err) {
+    console.error('MySQL healthcheck failed:', err.message);
+    res.status(503).json({ mysqlConnected: false, error: 'MySQL not reachable' });
+  }
+});
+
+// Public recommendations endpoint used by CV upload flow.
+app.get('/api/public/vacantes/recomendadas', async (req, res) => {
+  try {
+    const candidatoId = Number(req.query.candidato_id) || 0;
+    let area = String(req.query.area_especialidad || '').trim();
+
+    if (!area && candidatoId > 0) {
+      const [candidateRows] = await db.pool.query(
+        'SELECT area_especialidad FROM candidato WHERE id = ?',
+        [candidatoId]
+      );
+      if (candidateRows.length) {
+        area = (candidateRows[0].area_especialidad || '').trim();
+      }
+    }
+
+    if (!area) {
+      return res.json({ vacantes: [], area: '' });
+    }
+
+    const [rows] = await db.pool.query(
+      `SELECT v.id, v.titulo, v.area, v.estatus, v.campus_id,
+              CASE WHEN p.id IS NULL THEN 0 ELSE 1 END AS yaPostulado
+       FROM vacante v
+       LEFT JOIN postulacion p ON p.vacante_id = v.id AND p.candidato_id = ?
+       WHERE v.estatus = 'OPEN'
+         AND LOWER(TRIM(v.area)) = LOWER(TRIM(?))
+       ORDER BY v.created_at DESC, v.id DESC`,
+      [candidatoId, area]
+    );
+
+    res.json({
+      area,
+      vacantes: rows.map((row) => ({
+        ...row,
+        yaPostulado: row.yaPostulado === 1
+      }))
+    });
+  } catch (err) {
+    console.error('Error en recomendaciones publicas:', err.message);
+    res.status(500).json({ error: 'DB error' });
+  }
+});
+
+// Public application endpoint from recommendation modal.
+app.post('/api/public/postulaciones', async (req, res) => {
+  try {
+    const candidatoId = Number(req.body.candidato_id);
+    const vacanteId = Number(req.body.vacante_id);
+
+    if (!Number.isInteger(candidatoId) || candidatoId <= 0 || !Number.isInteger(vacanteId) || vacanteId <= 0) {
+      return res.status(400).json({ error: 'candidato_id y vacante_id son requeridos' });
+    }
+
+    const [candidateRows] = await db.pool.query(
+      'SELECT id, area_especialidad FROM candidato WHERE id = ?',
+      [candidatoId]
+    );
+    if (!candidateRows.length) {
+      return res.status(404).json({ error: 'Candidato no encontrado' });
+    }
+
+    const [vacanteRows] = await db.pool.query(
+      'SELECT id, area, estatus FROM vacante WHERE id = ?',
+      [vacanteId]
+    );
+    if (!vacanteRows.length) {
+      return res.status(404).json({ error: 'Vacante no encontrada' });
+    }
+
+    const vacante = vacanteRows[0];
+    const candidate = candidateRows[0];
+
+    if (vacante.estatus !== 'OPEN') {
+      return res.status(400).json({ error: 'La vacante no esta abierta' });
+    }
+
+    const candidateArea = String(candidate.area_especialidad || '').trim().toLowerCase();
+    const vacanteArea = String(vacante.area || '').trim().toLowerCase();
+    if (candidateArea && vacanteArea && candidateArea !== vacanteArea) {
+      return res.status(400).json({ error: 'La vacante no coincide con el area de especialidad del candidato' });
+    }
+
+    try {
+      const [insertResult] = await db.pool.query(
+        'INSERT INTO postulacion (vacante_id, candidato_id) VALUES (?, ?)',
+        [vacanteId, candidatoId]
+      );
+      return res.json({ ok: true, alreadyApplied: false, postulacionId: insertResult.insertId });
+    } catch (err) {
+      if (err.code === 'ER_DUP_ENTRY') {
+        return res.json({ ok: true, alreadyApplied: true });
+      }
+      throw err;
+    }
+  } catch (err) {
+    console.error('Error en postulacion publica:', err.message);
+    res.status(500).json({ error: 'DB error' });
+  }
+});
+
+// authorization middleware
+function requireAuth(req, res, next) {
+  if (req.session && req.session.userId) {
+    return next();
+  }
+  res.status(401).json({ error: 'Not authorized' });
+}
+
+// protect dashboard HTML
+app.get('/dashboard.html', requireAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+});
+
+// mount API routes
+app.use('/api/auth', authRoutes);
+app.use('/api/vacantes', requireAuth, vacantesRoutes);
+app.use('/api/postulaciones', requireAuth, postulacionesRoutes);
+app.use('/api/candidatos', candidatosRoutes); // POST open, GET protected inside
+
+// fallback for other static routes (login, create-account, index)
+// they are served by express.static
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
+});
